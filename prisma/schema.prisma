@@ -1,0 +1,217 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+// =============================================================
+// ENUMS (Liệt kê các giá trị cố định)
+// =============================================================
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum VerificationCodeType {
+  REGISTER
+  FORGOT_PASSWORD
+  // Có thể thêm các loại khác nếu cần: EMAIL_VERIFICATION, PHONE_VERIFICATION
+}
+
+enum AppointmentStatus {
+  PENDING      // Chờ xác nhận
+  CONFIRMED    // Đã xác nhận
+  CANCELLED    // Đã hủy
+  COMPLETED    // Đã hoàn thành
+  RESCHEDULED  // Đã đổi lịch
+}
+
+enum NotificationType {
+  EMAIL // Thông báo qua email
+  SMS   // Thông báo qua SMS
+  IN_APP // Thông báo trong ứng dụng
+}
+
+enum NotificationStatus {
+  PENDING  // Chờ gửi
+  SENT     // Đã gửi
+  FAILED   // Gửi thất bại
+  READ     // Người dùng đã đọc (chỉ áp dụng cho IN_APP)
+}
+
+// =============================================================
+// MODELS (Định nghĩa các bảng trong Database)
+// =============================================================
+
+// Bảng Người dùng
+model User {
+  id              String         @id @default(uuid()) // ID duy nhất, dạng UUID
+  email           String         @unique              // Email đăng nhập, duy nhất
+  password        String         // Mật khẩu đã mã hóa (hashed)
+  name            String?        // Tên người dùng (có thể null)
+  phoneNumber     String?        // Số điện thoại (có thể null)
+  avatarUrl       String?        // Đường dẫn ảnh đại diện (có thể null)
+  status          UserStatus     @default(ACTIVE)   // Trạng thái tài khoản (ACTIVE, INACTIVE, BLOCKED)
+  
+  roleId          String         // Khóa ngoại đến bảng Role
+  role            Role           @relation(fields: [roleId], references: [id]) // Mối quan hệ với bảng Role
+
+  createdAt       DateTime       @default(now())   // Thời điểm tạo tài khoản
+  updatedAt       DateTime       @updatedAt        // Thời điểm cập nhật cuối cùng
+  
+  // Quan hệ với các bảng khác
+  conversations   Conversation[]
+  devices         Device[]
+  refreshTokens   RefreshToken[]
+  appointments    Appointment[]
+  notifications   Notification[]
+}
+
+// Bảng Vai trò (Phân quyền cơ bản)
+model Role {
+  id              String         @id @default(uuid()) // ID duy nhất, dạng UUID
+  name            String         @unique              // Tên vai trò (ví dụ: "admin", "user", "doctor"), duy nhất
+  description     String?        // Mô tả vai trò
+  isActive        Boolean        @default(true)      // Vai trò có hoạt động không
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  users           User[]         // Mối quan hệ 1-n với User
+}
+
+// Bảng Thiết bị
+model Device {
+  id              String         @id @default(uuid())
+  userId          String         // Khóa ngoại đến bảng User
+  user            User           @relation(fields: [userId], references: [id]) // Mối quan hệ với bảng User
+
+  userAgent       String?        // Thông tin User Agent của thiết bị
+  ipAddress       String?        // Địa chỉ IP của thiết bị
+  
+  lastActiveAt    DateTime       @updatedAt // Thời điểm thiết bị hoạt động gần nhất
+  createdAt       DateTime       @default(now())
+
+  refreshTokens   RefreshToken[] // Mối quan hệ 1-n với RefreshToken
+}
+
+// Bảng Refresh Token
+model RefreshToken {
+  id              String         @id @default(uuid())
+  token           String         @unique // Giá trị Refresh Token, duy nhất
+  userId          String         // Khóa ngoại đến bảng User
+  user            User           @relation(fields: [userId], references: [id]) // Mối quan hệ với bảng User
+
+  deviceId        String?        // Khóa ngoại đến bảng Device (có thể null nếu không lưu device)
+  device          Device?        @relation(fields: [deviceId], references: [id]) // Mối quan hệ với bảng Device
+
+  expiresAt       DateTime       // Thời gian hết hạn của token
+  createdAt       DateTime       @default(now())
+  revokedAt       DateTime?      // Thời gian token bị thu hồi (ví dụ: đăng xuất, đổi mật khẩu)
+  replacedByTokenId String?      // ID của refresh token mới nếu được cấp khi refresh
+}
+
+// Bảng Mã xác thực (OTP, quên mật khẩu...)
+model VerificationCode {
+  id          String                 @id @default(uuid())
+  email       String                 // Email nhận mã
+  code        String                 // Mã xác thực
+  type        VerificationCodeType   // Loại mã (REGISTER, FORGOT_PASSWORD)
+  expiresAt   DateTime               // Thời gian hết hạn của mã
+  createdAt   DateTime               @default(now())
+
+  @@index([email, code, type]) // Tối ưu truy vấn tìm kiếm mã
+  @@index([expiresAt])        // Tối ưu truy vấn xóa mã hết hạn
+}
+
+// Bảng Kiến thức (Knowledge Base)
+model KnowledgeChunk {
+  id        String                  @id @default(uuid())
+  content   String                  // Nội dung văn bản của đoạn kiến thức
+  embedding Unsupported("vector(1536)") // Vector embedding (sử dụng pgvector)
+  source    String?                 // Nguồn của đoạn kiến thức (ví dụ: tên tài liệu, URL)
+  category  String?                 // Phân loại (ví dụ: "human_dermatology", "pet_vet", "general")
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+}
+
+// Bảng Cuộc trò chuyện
+model Conversation {
+  id        String    @id @default(uuid())
+  userId    String    // Khóa ngoại đến bảng User
+  user      User      @relation(fields: [userId], references: [id]) // Mối quan hệ với bảng User
+  
+  title     String?   // Tiêu đề ngắn của cuộc trò chuyện (ví dụ: "Tư vấn triệu chứng ho")
+  // Nếu tích hợp với FB/Zalo, có thể thêm trường để lưu ID của người dùng trên nền tảng đó
+  platform  String?   // Ví dụ: "web", "facebook", "zalo"
+  platformConversationId String? // ID cuộc trò chuyện trên nền tảng (nếu có)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt // Cập nhật mỗi khi có tin nhắn mới
+
+  messages  Message[] // Mối quan hệ 1-n với Message
+}
+
+// Bảng Tin nhắn trong cuộc trò chuyện
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String       // Khóa ngoại đến bảng Conversation
+  conversation   Conversation @relation(fields: [conversationId], references: [id]) // Mối quan hệ với bảng Conversation
+  
+  role           String       // Vai trò của người gửi ("user" hoặc "assistant")
+  content        String       @db.Text // Nội dung tin nhắn (sử dụng Text cho nội dung dài)
+  
+  createdAt      DateTime     @default(now())
+}
+
+// Bảng Lịch hẹn
+model Appointment {
+  id                  String            @id @default(uuid())
+  userId              String            // Khóa ngoại đến bảng User (người đặt hẹn)
+  user                User              @relation(fields: [userId], references: [id])
+
+  consultantName      String?           // Tên bác sĩ/thú y tư vấn (nếu không có bảng Doctor/Vet riêng)
+  consultantId        String?           // Nếu có bảng Doctor/Vet riêng thì dùng ID này
+  
+  appointmentDateTime DateTime          // Thời gian hẹn
+  status              AppointmentStatus @default(PENDING) // Trạng thái cuộc hẹn
+  notes               String?           @db.Text // Ghi chú thêm về cuộc hẹn
+
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  notifications       Notification[]    // Mối quan hệ 1-n với Notification (thông báo liên quan đến lịch hẹn)
+}
+
+// Bảng Thông báo (Log email/SMS/in-app notification)
+model Notification {
+  id              String           @id @default(uuid())
+  userId          String?          // Khóa ngoại đến bảng User (người nhận thông báo, có thể null nếu là thông báo hệ thống không liên quan user cụ thể)
+  user            User?            @relation(fields: [userId], references: [id])
+
+  type            NotificationType // Loại thông báo (EMAIL, SMS, IN_APP)
+  subject         String?          // Tiêu đề (nếu là email)
+  body            String           @db.Text // Nội dung thông báo
+  recipient       String?          // Địa chỉ email hoặc số điện thoại người nhận (nếu là EMAIL/SMS)
+  status          NotificationStatus @default(PENDING) // Trạng thái gửi (PENDING, SENT, FAILED, READ)
+
+  appointmentId   String?          // Khóa ngoại đến bảng Appointment (nếu thông báo liên quan đến lịch hẹn)
+  appointment     Appointment?     @relation(fields: [appointmentId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  sentAt          DateTime?        // Thời điểm gửi thành công
+}
