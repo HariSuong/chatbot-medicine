@@ -49,8 +49,8 @@ export type RegisterResType = z.infer<typeof RegisterResSchema>;
 // VERIFICATION_CODE_TYPE_VALUES
 
 export const VerificationCodeSchema = z.object({
-  id: z.uuid(),
-  email: z.email(),
+  id: z.string().uuid(),
+  email: z.string().email(),
   code: z.string().length(6),
   type: z.enum(VERIFICATION_CODE_TYPE_VALUES), // Sử dụng const array cho type
   expiresAt: z.date(),
@@ -58,6 +58,6 @@ export const VerificationCodeSchema = z.object({
 });
 
 export const SendOTPBodySchema = z.object({
-  email: z.email(),
+  email: z.string().email(),
   type: z.enum(VERIFICATION_CODE_TYPE_VALUES), // Sử dụng const array cho type
 });
