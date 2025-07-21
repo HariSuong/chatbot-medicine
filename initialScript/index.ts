@@ -1,4 +1,4 @@
-// initialScript/index.ts (ĐIỀU CHỈNH LẠI)
+// initialScript/index.ts
 
 /**
  * Công dụng của file này

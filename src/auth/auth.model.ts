@@ -52,12 +52,32 @@ export const VerificationCodeSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   code: z.string().length(6),
-  type: z.enum(VERIFICATION_CODE_TYPE_VALUES), // Sử dụng const array cho type
+  type: z.enum([
+    VERIFICATION_CODE_TYPE_VALUES.REGISTER,
+    VERIFICATION_CODE_TYPE_VALUES.FORGOT_PASSWORD,
+  ]), // Sử dụng const array cho type
   expiresAt: z.date(),
   createdAt: z.date(),
 });
 
 export const SendOTPBodySchema = z.object({
   email: z.string().email(),
-  type: z.enum(VERIFICATION_CODE_TYPE_VALUES), // Sử dụng const array cho type
+  type: z.enum([
+    VERIFICATION_CODE_TYPE_VALUES.REGISTER,
+    VERIFICATION_CODE_TYPE_VALUES.FORGOT_PASSWORD,
+  ]), // Sử dụng const array cho type
 });
+
+export const RoleSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string(),
+  isActive: z.boolean(),
+
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type VerificationCodeType = z.infer<typeof VerificationCodeSchema>;
+export type SendOTPBodyType = z.infer<typeof SendOTPBodySchema>;
+export type RoleType = z.infer<typeof RoleSchema>;

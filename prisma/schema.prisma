@@ -59,7 +59,7 @@ enum NotificationStatus {
 
 // Bảng Người dùng
 model User {
-  id              String         @id @default(uuid()) // ID duy nhất, dạng UUID
+  id              String          @id @default(uuid()) // ID duy nhất, dạng UUID
   email           String         @unique              // Email đăng nhập, duy nhất
   password        String         // Mật khẩu đã mã hóa (hashed)
   name            String?        // Tên người dùng (có thể null)
@@ -128,7 +128,7 @@ model RefreshToken {
 // Bảng Mã xác thực (OTP, quên mật khẩu...)
 model VerificationCode {
   id          String                 @id @default(uuid())
-  email       String                 // Email nhận mã
+  email       String                 @unique// Email nhận mã
   code        String                 // Mã xác thực
   type        VerificationCodeType   // Loại mã (REGISTER, FORGOT_PASSWORD)
   expiresAt   DateTime               // Thời gian hết hạn của mã

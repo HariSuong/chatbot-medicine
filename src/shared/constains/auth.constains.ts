@@ -23,9 +23,9 @@ export const USER_STATUS_VALUES = ['ACTIVE', 'INACTIVE', 'BLOCKED'] as const;
 export type UserStatusType = (typeof USER_STATUS_VALUES)[number];
 
 // Định nghĩa các giá trị VerificationCodeType
-export const VERIFICATION_CODE_TYPE_VALUES = [
-  'REGISTER',
-  'FORGOT_PASSWORD',
-] as const;
+export const VERIFICATION_CODE_TYPE_VALUES = {
+  REGISTER: 'REGISTER',
+  FORGOT_PASSWORD: 'FORGOT_PASSWORD',
+} as const;
 export type VerificationCodeTypeType =
-  (typeof VERIFICATION_CODE_TYPE_VALUES)[number];
+  keyof typeof VERIFICATION_CODE_TYPE_VALUES;
