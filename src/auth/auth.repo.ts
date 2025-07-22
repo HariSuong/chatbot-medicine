@@ -1,4 +1,4 @@
-// src/auth/auth.repo.ts (PHIÊN BẢN MỚI NHẤT - ĐÃ BỎ STATUS KHỎI INPUT)
+// src/auth/auth.repo.ts
 
 import { Injectable } from '@nestjs/common';
 import { RoleType, VerificationCodeType } from 'src/auth/auth.model';
@@ -18,13 +18,13 @@ export class AuthRepository {
    * @param user Dữ liệu người dùng cần tạo (email, name, password, phoneNumber, roleId).
    * @returns Promise<Omit<UserType, 'password'>> - Trả về thông tin người dùng đã tạo, loại bỏ mật khẩu.
    */
-  async createUser(
+  createUser(
     user: Pick<
       UserType, // Sử dụng kiểu UserType từ Zod schema của bạn
       'email' | 'name' | 'password' | 'phoneNumber' | 'roleId'
     >,
   ): Promise<Omit<UserType, 'password'>> {
-    const createdUser = await this.prismaService.user.create({
+    return this.prismaService.user.create({
       data: {
         ...user,
         // Đảm bảo roleId là string (uuid)
@@ -34,7 +34,6 @@ export class AuthRepository {
         password: true,
       },
     });
-    return createdUser as Omit<UserType, 'password'>;
   }
 
   /**
@@ -44,13 +43,13 @@ export class AuthRepository {
    * @param user Dữ liệu người dùng cần tạo.
    * @returns Promise<UserType & { role: RoleType }> - Trả về người dùng và thông tin vai trò (kiểu Zod).
    */
-  async createUserIncludeRole(
+  createUserIncludeRole(
     user: Pick<
       UserType, // Sử dụng kiểu UserType từ Zod schema của bạn
       'email' | 'name' | 'password' | 'phoneNumber' | 'avatarUrl' | 'roleId'
     >,
   ): Promise<UserType & { role: RoleType }> {
-    const createdUserWithRole = await this.prismaService.user.create({
+    return this.prismaService.user.create({
       data: {
         ...user,
       },
@@ -58,7 +57,6 @@ export class AuthRepository {
         role: true,
       },
     });
-    return createdUserWithRole as UserType & { role: RoleType };
   }
 
   /**
@@ -67,26 +65,25 @@ export class AuthRepository {
    * @param payload Dữ liệu mã xác thực (email, code, type, expiresAt).
    * @returns Promise<VerificationCodeType> - Trả về mã xác thực đã tạo/cập nhật (kiểu Zod).
    */
-  async createVerificationCode(
+  createVerificationCode(
     payload: Pick<
       VerificationCodeType,
       'email' | 'code' | 'type' | 'expiresAt'
     >,
   ): Promise<VerificationCodeType> {
-    const createdVerification =
-      await this.prismaService.verificationCode.upsert({
-        where: {
-          email: payload.email,
-        },
-        create: {
-          ...payload,
-        },
-        update: {
-          code: payload.code,
-          expiresAt: payload.expiresAt,
-        },
-      });
-    return createdVerification as VerificationCodeType;
+    return this.prismaService.verificationCode.upsert({
+      where: {
+        email: payload.email,
+      },
+      create: {
+        ...payload,
+      },
+      update: {
+        code: payload.code,
+        type: payload.type,
+        expiresAt: payload.expiresAt,
+      },
+    });
   }
 
   /**
@@ -95,18 +92,28 @@ export class AuthRepository {
    * @param uniqueValue Đối tượng chứa tiêu chí tìm kiếm duy nhất.
    * @returns Promise<VerificationCodeType | null> - Trả về mã xác thực nếu tìm thấy, ngược lại là null (kiểu Zod).
    */
-  async findUniqueVerificationCode(
+  findUniqueVerificationCode(
     uniqueValue:
       | { email: string }
       | { id: string }
       | { email: string; code: string; type: VerificationCodeTypeType },
   ): Promise<VerificationCodeType | null> {
-    const foundVerification =
-      await this.prismaService.verificationCode.findUnique({
-        where: {
-          ...uniqueValue,
-        },
-      });
-    return foundVerification as VerificationCodeType | null;
+    console.log('uniqueValue', uniqueValue);
+    return this.prismaService.verificationCode.findUnique({
+      where: {
+        ...uniqueValue,
+      },
+    });
+  }
+
+  /**
+   * Xóa một mã xác thực (OTP) khỏi database.
+   * @param id ID của mã xác thực cần xóa.
+   * @returns Promise<void>
+   */
+  async deleteVerificationCode(id: string): Promise<void> {
+    await this.prismaService.verificationCode.delete({
+      where: { id },
+    });
   }
 }

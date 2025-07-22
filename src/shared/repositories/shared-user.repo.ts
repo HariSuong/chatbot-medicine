@@ -13,4 +13,15 @@ export class SharedUserRepository {
       where: uniqueObject,
     });
   }
+
+  // --- HÀM MỚI: Cập nhật mật khẩu người dùng ---
+  async updateUserPassword(payload: {
+    email: string;
+    password: string;
+  }): Promise<void> {
+    await this.prismaService.user.update({
+      where: { email: payload.email },
+      data: { password: payload.password },
+    });
+  }
 }

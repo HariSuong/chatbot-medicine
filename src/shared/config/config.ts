@@ -31,7 +31,9 @@ const configSchema = z.object({
   ADMIN_PHONE_NUMBER: z.string().regex(/^\d{10,11}$/, {
     message: 'Số điện thoại phải có 10 hoặc 11 chữ số',
   }),
-  // OTP_EXPIRE_IN: z.string().optional().default('5m'), // Thêm trường OTP_EXPIRE_IN với giá trị mặc định là '5m'
+  OTP_EXPIRE_IN: z.string().optional().default('5m'), // Thêm trường OTP_EXPIRE_IN với giá trị mặc định là '5m'
+  SENDGRID_API_KEY: z.string(),
+  MAILER_DEFAULT_FROM_EMAIL: z.string(),
   // GOOGLE_CLIENT_ID: z.string(),
   // GOOGLE_CLIENT_SECRET: z.string(),
   // GOOGLE_REDIRECT_URI: z.string(),

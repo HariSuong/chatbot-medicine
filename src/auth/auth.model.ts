@@ -68,12 +68,39 @@ export const SendOTPBodySchema = z.object({
   ]), // Sử dụng const array cho type
 });
 
+// --- ForgotPasswordBodySchema ---
+// Schema cho dữ liệu gửi lên khi người dùng đặt lại mật khẩu
+export const ForgotPasswordBodySchema = z
+  .object({
+    email: z.string().email(),
+    code: z.string().length(6, 'Mã xác thực phải có 6 ký tự'),
+    password: z
+      .string()
+      .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+      .max(100, 'Mật khẩu không được quá 100 ký tự'),
+    confirmPassword: z
+      .string()
+      .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+      .max(100, 'Mật khẩu không được quá 100 ký tự'),
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Mật khẩu và xác nhận mật khẩu không khớp',
+        path: ['confirmPassword'],
+      });
+    }
+  });
+
+export type ForgotPasswordBodyType = z.infer<typeof ForgotPasswordBodySchema>;
+
 export const RoleSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  description: z.string(),
+  description: z.string().nullable(),
   isActive: z.boolean(),
-
   createdAt: z.date(),
   updatedAt: z.date(),
 });

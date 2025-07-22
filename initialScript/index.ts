@@ -7,7 +7,7 @@
  * - Chạy một lần duy nhất khi khởi tạo hệ thống
  */
 
-import envConfig from 'src/shared/config';
+import envConfig from 'src/shared/config/config';
 import { ROLE_NAME_VALUES } from 'src/shared/constains/role.constain'; // <-- Sử dụng ROLE_NAME_VALUES
 import { HasingService } from 'src/shared/services/hasing.service';
 import { PrismaService } from 'src/shared/services/prisma.service';
