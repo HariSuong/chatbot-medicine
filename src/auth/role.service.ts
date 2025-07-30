@@ -1,4 +1,4 @@
-// src/role/role.service.ts (ĐÃ SỬA CHỮA)
+// src/role/role.service.ts
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ROLE_NAME_VALUES } from 'src/shared/constains/role.constain';

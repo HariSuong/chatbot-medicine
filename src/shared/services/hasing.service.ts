@@ -1,4 +1,4 @@
-// hasing.service.ts
+// src/shared/service/hasing.service.ts
 import { Injectable } from '@nestjs/common';
 import { compare, hash } from 'bcrypt';
 

@@ -1,3 +1,5 @@
+// src/shared/models/shared-user.model.ts
+
 import { USER_STATUS_VALUES } from 'src/shared/constains/auth.constains';
 import { z } from 'zod';
 

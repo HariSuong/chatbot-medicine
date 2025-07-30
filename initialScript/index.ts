@@ -1,98 +1,83 @@
 // initialScript/index.ts
 
 /**
- * Công dụng của file này
- * - Tạo các role mặc định trong hệ thống
- * - Tạo người dùng admin mặc định
- * - Chạy một lần duy nhất khi khởi tạo hệ thống
+ * Công dụng của file này:
+ * - Đảm bảo các vai trò mặc định (ADMIN, USER) tồn tại.
+ * - Đảm bảo người dùng admin mặc định tồn tại.
+ * - Script này có thể chạy lại nhiều lần một cách an toàn.
  */
 
 import envConfig from 'src/shared/config/config';
-import { ROLE_NAME_VALUES } from 'src/shared/constains/role.constain'; // <-- Sử dụng ROLE_NAME_VALUES
+import { ROLE_NAME_VALUES } from 'src/shared/constains/role.constain';
 import { HasingService } from 'src/shared/services/hasing.service';
 import { PrismaService } from 'src/shared/services/prisma.service';
 
-// Tạo các instance của PrismaService và HasingService
-// Lưu ý: Trong môi trường NestJS thông thường, bạn sẽ inject các service này.
-// Nhưng đây là một script độc lập chạy bên ngoài NestJS context, nên chúng ta khởi tạo thủ công.
 const prisma = new PrismaService();
 const hasingService = new HasingService();
 
 const main = async () => {
   console.log('Bắt đầu chạy script khởi tạo dữ liệu...');
 
-  // Kiểm tra xem các vai trò đã tồn tại trong database chưa
-  const roleCount = await prisma.role.count();
-  console.log(`Số lượng vai trò hiện có: ${roleCount}`);
-  if (roleCount > 0) {
-    console.warn(
-      'Các vai trò đã tồn tại trong database. Bỏ qua việc tạo vai trò.',
-    );
-    return { createdRoleCount: 0, adminUser: null };
-  }
-
-  // Tạo các vai trò nếu chúng chưa tồn tại
-  const rolesData = [
-    {
+  // --- Gợi ý 2: Làm cho Script "thông minh" hơn ---
+  // Dùng `upsert` để tạo role nếu chưa có, hoặc bỏ qua nếu đã có.
+  // Điều này an toàn hơn là kiểm tra `count`.
+  console.log('Đang đảm bảo các vai trò cơ bản tồn tại...');
+  const adminRole = await prisma.role.upsert({
+    where: { name: ROLE_NAME_VALUES.ADMIN },
+    update: {},
+    create: {
       name: ROLE_NAME_VALUES.ADMIN,
       description: 'Quản trị viên hệ thống',
-      isActive: true,
-    }, // <-- Thêm isActive
-    {
-      name: ROLE_NAME_VALUES.USER,
-      description: 'Người dùng thông thường',
-      isActive: true,
-    }, // <-- Thêm isActive
-  ];
-  const roles = await prisma.role.createMany({
-    data: rolesData,
-  });
-  console.log(`Đã tạo ${roles.count} vai trò.`);
-
-  // Lấy vai trò admin
-  const adminRole = await prisma.role.findFirstOrThrow({
-    where: { name: ROLE_NAME_VALUES.ADMIN }, // <-- Sử dụng ROLE_NAME_VALUES
-  });
-  console.log(`Đã tìm thấy vai trò Admin với ID: ${adminRole.id}`);
-
-  // Mã hóa mật khẩu admin
-  const hashedPassword = await hasingService.hash(envConfig.ADMIN_PASSWORD);
-  console.log('Đã mã hóa mật khẩu admin.');
-
-  // Tạo người dùng admin
-  const adminUser = await prisma.user.create({
-    data: {
-      name: envConfig.ADMIN_NAME,
-      email: envConfig.ADMIN_EMAIL,
-      phoneNumber: envConfig.ADMIN_PHONE_NUMBER,
-      password: hashedPassword,
-      roleId: adminRole.id, // ID là String
-      status: 'ACTIVE', // Đặt trạng thái ACTIVE cho admin
     },
   });
-  console.log(`Đã tạo người dùng Admin: ${adminUser.email}`);
 
-  return {
-    createdRoleCount: roles.count,
-    adminUser,
-  };
+  await prisma.role.upsert({
+    where: { name: ROLE_NAME_VALUES.USER },
+    update: {},
+    create: {
+      name: ROLE_NAME_VALUES.USER,
+      description: 'Người dùng thông thường',
+    },
+  });
+  console.log('✅ Các vai trò cơ bản đã sẵn sàng.');
+
+  // --- Cũng kiểm tra sự tồn tại của admin một cách độc lập ---
+  console.log('Đang kiểm tra người dùng admin...');
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: envConfig.ADMIN_EMAIL },
+  });
+
+  if (existingAdmin) {
+    console.warn('✅ Người dùng Admin đã tồn tại, bỏ qua việc tạo mới.');
+  } else {
+    // Chỉ tạo admin nếu chưa có
+    const hashedPassword = await hasingService.hash(envConfig.ADMIN_PASSWORD);
+    const adminUser = await prisma.user.create({
+      data: {
+        name: envConfig.ADMIN_NAME,
+        email: envConfig.ADMIN_EMAIL,
+        phoneNumber: envConfig.ADMIN_PHONE_NUMBER,
+        password: hashedPassword,
+        roleId: adminRole.id, // Dùng ID của vai trò admin vừa được đảm bảo ở trên
+        status: 'ACTIVE',
+      },
+    });
+    console.log(`✅ Đã tạo người dùng Admin thành công: ${adminUser.email}`);
+  }
 };
 
-main()
-  .then(({ adminUser, createdRoleCount }) => {
-    if (createdRoleCount > 0) {
-      console.log(
-        `Khởi tạo database thành công: Đã tạo ${createdRoleCount} vai trò.`,
-      );
-      console.log(
-        `Người dùng Admin đã được tạo: ${adminUser?.name} (${adminUser?.email})`,
-      );
-    } else {
-      console.log('Database đã có dữ liệu vai trò, không cần khởi tạo lại.');
-    }
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('Lỗi khi khởi tạo vai trò hoặc người dùng admin:', error);
+// Gói lời gọi trong một hàm async và gọi nó ngay lập tức (IIFE)
+// Đây là cách làm đúng chuẩn để xử lý async ở top-level
+// Thêm "void" ở đầu để tắt cảnh báo no-floating-promises
+void (async () => {
+  try {
+    await main();
+    console.log('✅ Script khởi tạo đã chạy thành công.');
+  } catch (error) {
+    console.error('❌ Lỗi khi chạy script khởi tạo:', error);
     process.exit(1);
-  });
+  } finally {
+    await prisma.$disconnect();
+    console.log('Đã ngắt kết nối Prisma.');
+  }
+})();

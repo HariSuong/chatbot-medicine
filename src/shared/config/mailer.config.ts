@@ -1,3 +1,5 @@
+// src/shared/config/mailer.config.ts
+
 import { MailerOptions } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 

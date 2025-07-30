@@ -1,7 +1,12 @@
 // src/auth/auth.repo.ts
 
 import { Injectable } from '@nestjs/common';
-import { RoleType, VerificationCodeType } from 'src/auth/auth.model';
+import {
+  DeviceType,
+  RefreshTokenType,
+  RoleType,
+  VerificationCodeType,
+} from 'src/auth/auth.model';
 import { VerificationCodeTypeType } from 'src/shared/constains/auth.constains';
 import { UserType } from 'src/shared/models/shared-user.model';
 
@@ -73,7 +78,7 @@ export class AuthRepository {
   ): Promise<VerificationCodeType> {
     return this.prismaService.verificationCode.upsert({
       where: {
-        email: payload.email,
+        email_type: { email: payload.email, type: payload.type },
       },
       create: {
         ...payload,
@@ -87,22 +92,46 @@ export class AuthRepository {
   }
 
   /**
-   * Tìm một mã xác thực duy nhất dựa trên email, ID hoặc sự kết hợp của email, code và type.
-   *
-   * @param uniqueValue Đối tượng chứa tiêu chí tìm kiếm duy nhất.
-   * @returns Promise<VerificationCodeType | null> - Trả về mã xác thực nếu tìm thấy, ngược lại là null (kiểu Zod).
+   * Tìm một mã xác thực duy nhất bằng ID của nó.
+   * @param id ID (UUID) của mã xác thực cần tìm.
+   * @returns Promise<VerificationCodeType | null> - Trả về đối tượng mã xác thực nếu tìm thấy, ngược lại là null.
    */
-  findUniqueVerificationCode(
-    uniqueValue:
-      | { email: string }
-      | { id: string }
-      | { email: string; code: string; type: VerificationCodeTypeType },
-  ): Promise<VerificationCodeType | null> {
-    console.log('uniqueValue', uniqueValue);
+  findVerificationCodeById(id: string): Promise<VerificationCodeType | null> {
+    return this.prismaService.verificationCode.findUnique({
+      where: { id },
+    });
+  }
+
+  /**
+   * Tìm một mã xác thực duy nhất bằng tổ hợp email và loại mã.
+   * Hữu ích để kiểm tra xem người dùng đã yêu cầu loại mã này trước đó chưa.
+   * @param data Đối tượng chứa `email` và `type` của mã cần tìm.
+   * @returns Promise<VerificationCodeType | null> - Trả về đối tượng mã xác thực nếu tìm thấy, ngược lại là null.
+   */
+  findVerificationCodeByEmailAndType(data: {
+    email: string;
+    type: VerificationCodeTypeType;
+  }): Promise<VerificationCodeType | null> {
     return this.prismaService.verificationCode.findUnique({
       where: {
-        ...uniqueValue,
+        email_type: { email: data.email, type: data.type },
       },
+    });
+  }
+
+  /**
+   * Tìm một mã xác thực cụ thể để tiến hành xác minh (verify).
+   * Dùng `findFirst` để tìm chính xác record khớp với cả 3 trường.
+   * @param data Đối tượng chứa `email`, `code`, và `type` để xác thực.
+   * @returns Promise<VerificationCodeType | null> - Trả về đối tượng mã xác thực nếu khớp, ngược lại là null.
+   */
+  findVerificationCodeToVerify(data: {
+    email: string;
+    code: string;
+    type: VerificationCodeTypeType;
+  }): Promise<VerificationCodeType | null> {
+    return this.prismaService.verificationCode.findFirst({
+      where: data,
     });
   }
 
@@ -114,6 +143,71 @@ export class AuthRepository {
   async deleteVerificationCode(id: string): Promise<void> {
     await this.prismaService.verificationCode.delete({
       where: { id },
+    });
+  }
+
+  createRefreshToken(data: {
+    userId: string;
+    token: string;
+    expiresAt: Date;
+    deviceId: string;
+  }) {
+    return this.prismaService.refreshToken.create({
+      data,
+    });
+  }
+
+  createDevice(
+    data: Pick<DeviceType, 'ipAddress' | 'userId' | 'userAgent'> &
+      Partial<Pick<DeviceType, 'lastActiveAt' | 'isActive'>>,
+  ) {
+    return this.prismaService.device.create({
+      data,
+    });
+  }
+
+  async findUniqueUserIncludeRole(
+    uniqueObject: { email: string } | { id: string },
+  ): Promise<(UserType & { role: RoleType }) | null> {
+    return this.prismaService.user.findUnique({
+      where: uniqueObject,
+      include: {
+        role: true,
+      },
+    });
+  }
+
+  async findUniqueRefreshTokenIncludeUserRole(uniqueObject: {
+    token: string;
+  }): Promise<
+    (RefreshTokenType & { user: UserType & { role: RoleType } }) | null
+  > {
+    console.log('uniqueObject', uniqueObject);
+    return this.prismaService.refreshToken.findUnique({
+      where: uniqueObject,
+      include: {
+        user: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateDevice(
+    deviceID: string | undefined,
+    data: Partial<DeviceType>,
+  ): Promise<DeviceType> {
+    return this.prismaService.device.update({
+      where: { id: deviceID },
+      data,
+    });
+  }
+
+  async deleteRefreshToken(uniqueObject: { token: string }) {
+    return this.prismaService.refreshToken.delete({
+      where: uniqueObject,
     });
   }
 }

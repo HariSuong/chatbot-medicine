@@ -19,7 +19,12 @@ export type ConditionGuardType =
   (typeof ConditionGuard)[keyof typeof ConditionGuard];
 
 // Định nghĩa các giá trị UserStatus
-export const USER_STATUS_VALUES = ['ACTIVE', 'INACTIVE', 'BLOCKED'] as const;
+export const USER_STATUS_VALUES = [
+  'ACTIVE',
+  'INACTIVE',
+  'BLOCKED',
+  'PENDING_VERIFICATION',
+] as const;
 export type UserStatusType = (typeof USER_STATUS_VALUES)[number];
 
 // Định nghĩa các giá trị VerificationCodeType
