@@ -23,7 +23,7 @@ const configSchema = z.object({
   ACCESS_TOKEN_EXPIRES_IN: z.string(),
   REFRESH_TOKEN_SECRET: z.string(),
   REFRESH_TOKEN_EXPIRES_IN: z.string(),
-  // SECRET_API_KEY: z.string(),
+  SECRET_API_KEY: z.string(),
   ADMIN_NAME: z.string(),
   ADMIN_PASSWORD: z.string(),
   ADMIN_EMAIL: z.string().email(),
@@ -33,10 +33,10 @@ const configSchema = z.object({
   OTP_EXPIRE_IN: z.string().optional().default('5m'), // Thêm trường OTP_EXPIRE_IN với giá trị mặc định là '5m'
   SENDGRID_API_KEY: z.string(),
   MAILER_DEFAULT_FROM_EMAIL: z.string(),
-  // GOOGLE_CLIENT_ID: z.string(),
-  // GOOGLE_CLIENT_SECRET: z.string(),
-  // GOOGLE_REDIRECT_URI: z.string(),
-  // GOOGLE_CLIENT_REDIRECT_URI: z.string(),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
+  GOOGLE_REDIRECT_URI: z.string(),
+  GOOGLE_CLIENT_REDIRECT_URI: z.string(),
 });
 
 // Chuyển đổi process.env thành instance của ConfigSchema

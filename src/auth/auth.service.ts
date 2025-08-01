@@ -26,7 +26,11 @@ import {
   RefreshTokenAlreadyUsedException,
   UnauthorizedAccessException,
 } from 'src/shared/constains/exception.constains';
-import { generateOTP, isUniqueConstraintPrismaError } from 'src/shared/helpers';
+import {
+  generateOTP,
+  isNotFoundPrismaError,
+  isUniqueConstraintPrismaError,
+} from 'src/shared/helpers';
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo';
 import { EmailService } from 'src/shared/services/email.service';
 import { HasingService } from 'src/shared/services/hasing.service';
@@ -193,7 +197,7 @@ export class AuthService {
     const token = await this.generateTokens({
       deviceId: device.id,
       roleId: user.roleId,
-      roleName: user.name,
+      roleName: user.role.name,
       userId: user.id,
     });
     return token;
@@ -283,6 +287,35 @@ export class AuthService {
       // Trường hợp đã refresh token rồi, hãy cho user biết token của họ đã bị đánh cắp
       if (error instanceof HttpException) {
         throw error;
+      }
+
+      throw UnauthorizedAccessException;
+    }
+  }
+
+  async logout(refreshToken: string) {
+    try {
+      // 1. Kiểm tra refresh token có hợp lệ không
+
+      await this.tokenService.verifyRefreshToken(refreshToken);
+      // 2.  Xóa refresh token
+      const deletedRefreshToken = await this.authRepository.deleteRefreshToken({
+        token: refreshToken,
+      });
+
+      // 3. Cập nhật device là đã logout
+      // Dùng optional chaining (?) để an toàn hơn nếu deviceId có thể null
+      if (deletedRefreshToken?.deviceId) {
+        await this.authRepository.updateDevice(deletedRefreshToken.deviceId, {
+          isActive: false,
+        });
+      }
+
+      return { message: 'Đăng xuất thành công!' };
+    } catch (error) {
+      // Trường hợp đã refresh token rồi, hãy cho user biết token của họ đã bị đánh cắp
+      if (isNotFoundPrismaError(error)) {
+        throw RefreshTokenAlreadyUsedException;
       }
 
       throw UnauthorizedAccessException;

@@ -1,6 +1,9 @@
 import { Global, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import envConfig from 'src/shared/config/config';
+import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
+import { APIKeyGuard } from 'src/shared/guards/api-key.guard';
+import { RolesGuard } from 'src/shared/guards/roles.guard';
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo';
 import { EmailService } from 'src/shared/services/email.service';
 import { HasingService } from 'src/shared/services/hasing.service';
@@ -13,6 +16,9 @@ const sharedServices = [
   SharedUserRepository,
   EmailService,
   TokenService,
+  AccessTokenGuard,
+  APIKeyGuard,
+  RolesGuard,
 ];
 
 @Global() // Có thể thêm @Global() cho SharedModule nếu muốn các service trong nó dùng chung

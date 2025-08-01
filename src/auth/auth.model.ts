@@ -139,6 +139,15 @@ export const RefreshTokenSchema = z.object({
   createdAt: z.date(),
 });
 
+export const GoogleAuthStateSchema = DeviceSchema.pick({
+  ipAddress: true,
+  userAgent: true,
+});
+
+export const GetAuthorizationUrlResSchema = z.object({
+  url: z.string().url(),
+});
+
 export const LogoutBodySchema = RefreshTokenBodySchema;
 
 export type LoginBodyType = z.infer<typeof LoginBodySchema>;
@@ -151,3 +160,7 @@ export type LogoutBodyType = RefreshTokenBodyType;
 export type VerificationCodeType = z.infer<typeof VerificationCodeSchema>;
 export type SendOTPBodyType = z.infer<typeof SendOTPBodySchema>;
 export type RoleType = z.infer<typeof RoleSchema>;
+export type GoogleAuthStateType = z.infer<typeof GoogleAuthStateSchema>;
+export type GetAuthorizationUrlResType = z.infer<
+  typeof GetAuthorizationUrlResSchema
+>;
