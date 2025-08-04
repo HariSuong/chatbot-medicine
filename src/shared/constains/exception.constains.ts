@@ -83,6 +83,11 @@ export const GoogleUserInfoError = new InternalServerErrorException(
   'Không thể lấy thông tin người dùng từ Google.',
 );
 
+// --- Lỗi liên quan đến tài nguyên (Resource) ---
+export const ConversationAccessException = new ForbiddenException(
+  'Bạn không có quyền truy cập cuộc trò chuyện này.',
+);
+
 // --- Ví dụ thêm một số lỗi phổ biến khác ---
 export const UserNotFoundException = new NotFoundException([
   {

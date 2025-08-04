@@ -37,6 +37,7 @@ const configSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_REDIRECT_URI: z.string(),
   GOOGLE_CLIENT_REDIRECT_URI: z.string(),
+  GOOGLE_API_KEY: z.string(),
 });
 
 // Chuyển đổi process.env thành instance của ConfigSchema
