@@ -11,9 +11,11 @@ import { AuthenticationGuard } from 'src/shared/guards/authentication.guard';
 import { ZodSerializerInterceptor } from 'nestjs-zod';
 import { ProfileModule } from './profile/profile.module';
 import { ChatModule } from './chat/chat.module';
+import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
+import { AppointmentsModule } from './appointments/appointments.module';
 
 @Module({
-  imports: [SharedModule, AuthModule, MailerModule.forRoot(mailerConfig), ProfileModule, ChatModule],
+  imports: [SharedModule, AuthModule, MailerModule.forRoot(mailerConfig), ProfileModule, ChatModule, KnowledgeBaseModule, AppointmentsModule],
   controllers: [AppController],
   providers: [
     AppService,

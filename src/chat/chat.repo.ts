@@ -46,4 +46,21 @@ export class ChatRepository {
       data,
     }) as unknown as Promise<MessageType>;
   }
+
+  /**
+   * Lấy lịch sử tin nhắn của một cuộc trò chuyện.
+   * @param conversationId ID của cuộc trò chuyện.
+   * @param limit Số lượng tin nhắn gần nhất cần lấy.
+   * @returns Mảng các tin nhắn.
+   */
+  findMessagesByConversationId(
+    conversationId: string,
+    limit = 10, // Lấy 10 tin nhắn gần nhất (5 cặp hỏi-đáp)
+  ): Promise<MessageType[]> {
+    return this.prisma.message.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'desc' }, // Lấy những tin nhắn mới nhất trước
+      take: limit,
+    }) as unknown as Promise<MessageType[]>;
+  }
 }
