@@ -88,6 +88,10 @@ export const ConversationAccessException = new ForbiddenException(
   'Bạn không có quyền truy cập cuộc trò chuyện này.',
 );
 
+export const PetNotFoundException = new NotFoundException( // <-- THÊM MỚI
+  'Không tìm thấy hồ sơ thú cưng.',
+);
+
 // --- Ví dụ thêm một số lỗi phổ biến khác ---
 export const UserNotFoundException = new NotFoundException([
   {

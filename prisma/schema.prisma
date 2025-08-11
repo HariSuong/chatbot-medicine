@@ -47,6 +47,20 @@ enum NotificationStatus {
   READ
 }
 
+
+
+// Thêm Enum cho giống loài và giới tính
+enum PetSpecies {
+  DOG
+  CAT
+  OTHER
+}
+
+enum PetGender {
+  MALE
+  FEMALE
+}
+
 // =============================================================
 // MODELS
 // =============================================================
@@ -67,6 +81,7 @@ model User {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
+  pets            Pet[]          // Thêm quan hệ: Một người dùng có thể có nhiều thú cưng
   // Quan hệ
   consultantProfile Consultant?    // Thêm mới: Một User có thể là một Consultant
   conversations     Conversation[]
@@ -74,6 +89,24 @@ model User {
   refreshTokens     RefreshToken[]
   appointments      Appointment[]
   notifications     Notification[]
+}
+
+// Thêm model Pet mới để lưu hồ sơ thú cưng
+model Pet {
+  id          String     @id @default(uuid())
+  name        String     // Tên của thú cưng
+  species     PetSpecies // Giống loài (Chó, Mèo, Khác)
+  breed       String?    // Chi tiết về giống (ví dụ: "Poodle", "Mèo Anh lông ngắn")
+  gender      PetGender  // Giới tính (Đực, Cái)
+  birthDate   DateTime?  // Ngày sinh
+  avatarUrl   String?    // Ảnh đại diện của thú cưng
+  notes       String?    @db.Text // Ghi chú thêm
+
+  ownerId     String     // Khóa ngoại đến bảng User
+  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 // Bảng Vai trò

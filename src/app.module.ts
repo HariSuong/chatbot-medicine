@@ -13,9 +13,11 @@ import { ProfileModule } from './profile/profile.module';
 import { ChatModule } from './chat/chat.module';
 import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { PetsModule } from './pets/pets.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
-  imports: [SharedModule, AuthModule, MailerModule.forRoot(mailerConfig), ProfileModule, ChatModule, KnowledgeBaseModule, AppointmentsModule],
+  imports: [SharedModule, AuthModule, MailerModule.forRoot(mailerConfig), ProfileModule, ChatModule, KnowledgeBaseModule, AppointmentsModule, PetsModule, AdminModule],
   controllers: [AppController],
   providers: [
     AppService,

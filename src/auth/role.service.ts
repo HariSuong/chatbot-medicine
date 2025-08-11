@@ -10,6 +10,8 @@ export class RoleService {
   // userRoleId nên là kiểu string (UUID) chứ không phải number.
   // Khai báo private để nó chỉ được sử dụng trong class này.
   private userRoleId: string | null = null;
+  private doctorRoleId: string | null = null;
+
   constructor(private readonly prismaService: PrismaService) {}
 
   /**
@@ -45,6 +47,26 @@ export class RoleService {
     return role.id;
   }
 
-  // Bạn có thể thêm các phương thức khác ở đây nếu cần quản lý các vai trò khác (ví dụ: tạo vai trò, cập nhật vai trò)
-  // Nhưng hiện tại, với mục đích chính là lấy ID của vai trò mặc định, getUserRoleId là đủ.
+  /**
+   * Lấy ID của vai trò 'DOCTOR'.
+   * Sử dụng cache để tăng hiệu năng cho các lần gọi sau.
+   */
+  async getDoctorRoleId(): Promise<string> {
+    if (this.doctorRoleId) {
+      return this.doctorRoleId;
+    }
+
+    const role = await this.prismaService.role.findUnique({
+      where: { name: ROLE_NAME_VALUES.DOCTOR },
+    });
+
+    if (!role) {
+      throw new NotFoundException(
+        `Role ${ROLE_NAME_VALUES.DOCTOR} not found. Please run the seed script.`,
+      );
+    }
+
+    this.doctorRoleId = role.id;
+    return role.id;
+  }
 }

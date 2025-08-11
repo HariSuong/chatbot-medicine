@@ -39,7 +39,18 @@ const main = async () => {
       description: 'Người dùng thông thường',
     },
   });
-  console.log('✅ Các vai trò cơ bản đã sẵn sàng.');
+
+  // Thêm logic upsert cho DOCTOR
+  await prisma.role.upsert({
+    where: { name: ROLE_NAME_VALUES.DOCTOR },
+    update: {},
+    create: {
+      name: ROLE_NAME_VALUES.DOCTOR,
+      description: 'Bác sĩ/Chuyên gia tư vấn',
+    },
+  });
+
+  console.log('✅ Các vai trò cơ bản (ADMIN, USER, DOCTOR) đã sẵn sàng.');
 
   // --- Cũng kiểm tra sự tồn tại của admin một cách độc lập ---
   console.log('Đang kiểm tra người dùng admin...');
