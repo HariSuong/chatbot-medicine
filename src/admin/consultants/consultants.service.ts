@@ -1,9 +1,12 @@
 // src/admin/consultants/consultants.service.ts
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { HasingService } from 'src/shared/services/hasing.service';
 import { ConsultantsRepository } from './consultants.repo';
-import { CreateConsultantBodyType } from './consultants.model';
+import {
+  CreateConsultantBodyType,
+  UpdateConsultantBodyType,
+} from './consultants.model';
 import { RoleService } from 'src/auth/role.service';
 import { isUniqueConstraintPrismaError } from 'src/shared/helpers';
 import { EmailAlreadyExistsException } from 'src/shared/constains/exception.constains';
@@ -57,5 +60,31 @@ export class ConsultantsService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Logic để cập nhật thông tin một bác sĩ.
+   */
+  async update(consultantId: string, data: UpdateConsultantBodyType) {
+    // Kiểm tra xem consultant có tồn tại không trước khi cập nhật
+    const existingConsultant =
+      await this.consultantsRepo.findById(consultantId);
+    if (!existingConsultant) {
+      throw new NotFoundException('Không tìm thấy hồ sơ chuyên gia tư vấn.');
+    }
+    return this.consultantsRepo.update(consultantId, data);
+  }
+
+  /**
+   * Logic để xóa một hồ sơ bác sĩ.
+   */
+  async delete(consultantId: string) {
+    const existingConsultant =
+      await this.consultantsRepo.findById(consultantId);
+    if (!existingConsultant) {
+      throw new NotFoundException('Không tìm thấy hồ sơ chuyên gia tư vấn.');
+    }
+    await this.consultantsRepo.delete(consultantId);
+    return { message: 'Đã xóa hồ sơ chuyên gia tư vấn thành công.' };
   }
 }

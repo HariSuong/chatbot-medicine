@@ -15,9 +15,23 @@ import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { PetsModule } from './pets/pets.module';
 import { AdminModule } from './admin/admin.module';
+import { TasksModule } from './tasks/tasks.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [SharedModule, AuthModule, MailerModule.forRoot(mailerConfig), ProfileModule, ChatModule, KnowledgeBaseModule, AppointmentsModule, PetsModule, AdminModule],
+  imports: [
+    SharedModule,
+    AuthModule,
+    MailerModule.forRoot(mailerConfig),
+    ProfileModule,
+    ChatModule,
+    KnowledgeBaseModule,
+    AppointmentsModule,
+    PetsModule,
+    AdminModule,
+    ScheduleModule.forRoot(),
+    TasksModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,

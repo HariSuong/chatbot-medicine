@@ -1,6 +1,18 @@
 // src/admin/consultants/consultants.controller.ts
 
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ROLE_NAME_VALUES } from 'src/shared/constains/role.constain';
 import { Roles } from 'src/shared/decorators/roles.decorator';
@@ -10,6 +22,7 @@ import { ConsultantsService } from './consultants.service';
 import {
   ConsultantDTO,
   CreateConsultantDTO,
+  UpdateConsultantDTO,
 } from 'src/admin/consultants/consultants.dto';
 
 @Controller('admin/consultants')
@@ -36,5 +49,28 @@ export class ConsultantsController {
   @ZodSerializerDto(ConsultantDTO)
   create(@Body() body: CreateConsultantDTO) {
     return this.consultantsService.create(body);
+  }
+
+  /**
+   * API: PATCH /admin/consultants/:id
+   * Cập nhật thông tin một bác sĩ.
+   */
+  @Patch(':id')
+  @ZodSerializerDto(ConsultantDTO)
+  update(
+    @Param('id', ParseUUIDPipe) consultantId: string,
+    @Body() body: UpdateConsultantDTO,
+  ) {
+    return this.consultantsService.update(consultantId, body);
+  }
+
+  /**
+   * API: DELETE /admin/consultants/:id
+   * Xóa một hồ sơ bác sĩ.
+   */
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  delete(@Param('id', ParseUUIDPipe) consultantId: string) {
+    return this.consultantsService.delete(consultantId);
   }
 }

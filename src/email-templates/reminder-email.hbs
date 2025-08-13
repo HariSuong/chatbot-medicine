@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <title>Nhắc nhở Lịch hẹn Thú y</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+      }
+      .container {
+        padding: 20px;
+        max-width: 600px;
+        margin: auto;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .header {
+        font-size: 24px;
+        font-weight: bold;
+        color: #4caf50;
+      }
+      .footer {
+        font-size: 12px;
+        color: #777;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <p class='header'>Lịch hẹn của bạn sắp diễn ra!</p>
+      <p>Chào bạn {{name}},</p>
+      <p>Đây là email tự động để nhắc nhở về lịch hẹn của bạn tại phòng khám thú
+        y của chúng tôi vào ngày mai.</p>
+      <ul>
+        <li><strong>Thời gian:</strong> {{time}}</li>
+        <li><strong>Ngày:</strong> {{date}}</li>
+      </ul>
+      <p>Chúng tôi rất mong được gặp bạn và bé cưng. Vui lòng đến trước giờ hẹn
+        khoảng 5-10 phút để làm thủ tục nhé.</p>
+      <p>Trân trọng,</p>
+      <p><strong>Đội ngũ Chăm sóc Thú cưng</strong></p>
+      <hr />
+      <p class='footer'>Đây là email tự động, vui lòng không trả lời. Nếu bạn
+        cần thay đổi lịch hẹn, vui lòng liên hệ trực tiếp với chúng tôi.</p>
+    </div>
+  </body>
+</html>

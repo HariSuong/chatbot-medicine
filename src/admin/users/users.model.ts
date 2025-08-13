@@ -11,5 +11,13 @@ export const UserWithRoleResSchema = UserSchema.omit({ password: true }).extend(
   },
 );
 
+export const UpdateUserBodySchema = UserSchema.pick({
+  name: true,
+  phoneNumber: true,
+  status: true,
+  roleId: true,
+}).partial(); // .partial() biến tất cả các trường thành optional
+
 // Suy ra Type
 export type UserWithRoleResType = z.infer<typeof UserWithRoleResSchema>;
+export type UpdateUserBodyType = z.infer<typeof UpdateUserBodySchema>;
