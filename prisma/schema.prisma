@@ -65,6 +65,24 @@ enum PetGender {
 // MODELS
 // =============================================================
 
+
+// THÊM MỚI: Model để quản lý các công ty/phòng khám
+model Company {
+  id      String @id @default(uuid())
+  name    String // Tên công ty/phòng khám
+  apiKey  String @unique @default(uuid()) // API Key riêng cho mỗi công ty
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Quan hệ: Một công ty có nhiều User, Consultant, Document...
+  users         User[]
+  consultants   Consultant[]
+  documents     Document[]
+  appointments  Appointment[]
+}
+
+
 // Bảng Người dùng
 model User {
   id              String         @id @default(uuid())
@@ -82,6 +100,11 @@ model User {
   updatedAt       DateTime       @updatedAt
 
   pets            Pet[]          // Thêm quan hệ: Một người dùng có thể có nhiều thú cưng
+  // THÊM MỚI: Liên kết User với một Company
+  companyId       String
+  company         Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  
   // Quan hệ
   consultantProfile Consultant?    // Thêm mới: Một User có thể là một Consultant
   conversations     Conversation[]
@@ -129,6 +152,10 @@ model Consultant {
   specialty   String?       // Chuyên khoa (ví dụ: "Da liễu", "Thú y tổng quát")
   bio         String?       @db.Text
   isAvailable Boolean       @default(true)
+
+  // THÊM MỚI: Liên kết Consultant với một Company
+  companyId   String
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   appointments Appointment[]
 }
@@ -179,6 +206,10 @@ model Document {
   sourceUrl String?
   category  String   // "veterinary", "dermatology"
   createdAt DateTime @default(now())
+  // THÊM MỚI: Liên kết Document với một Company
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
   chunks    KnowledgeChunk[]
 }
 
@@ -228,6 +259,11 @@ model Appointment {
   notes               String?           @db.Text
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
+
+  // THÊM MỚI: Liên kết Appointment với một Company
+  companyId           String
+  company             Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
   notifications       Notification[]
 }
 
