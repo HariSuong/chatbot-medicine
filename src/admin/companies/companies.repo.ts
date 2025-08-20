@@ -53,6 +53,15 @@ export class CompaniesRepository {
   }
 
   /**
+   * Tìm một công ty duy nhất bằng tên.
+   */
+  async findByName(name: string): Promise<CompanyType | null> {
+    return this.prisma.company.findFirst({
+      where: { name },
+    });
+  }
+
+  /**
    * Cập nhật thông tin của một công ty.
    * @param companyId ID của công ty cần cập nhật.
    * @param data Dữ liệu mới (name, isActive).

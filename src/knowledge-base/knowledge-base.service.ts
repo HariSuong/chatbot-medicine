@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import pdfParse from 'pdf-parse';
 import { PrismaService } from 'src/shared/services/prisma.service';
+import { AccessTokenPayload } from 'src/shared/types/jwt.type'; // <-- Thêm import
 
 @Injectable()
 export class KnowledgeBaseService {
@@ -23,7 +24,11 @@ export class KnowledgeBaseService {
     });
   }
 
-  async processAndEmbedPdf(fileBuffer: Buffer, fileName: string) {
+  async processAndEmbedPdf(
+    fileBuffer: Buffer,
+    fileName: string,
+    admin: AccessTokenPayload,
+  ) {
     console.log('--- 2. SERVICE: Bắt đầu xử lý file PDF ---');
 
     // --- BƯỚC A: ĐỌC NỘI DUNG TỪ PDF ---
@@ -53,11 +58,12 @@ export class KnowledgeBaseService {
 
     // --- BƯỚC D: LƯU VÀO DATABASE ---
     console.log('--- 2D. SERVICE: Chuẩn bị lưu vào database... ---');
-    // Tạo bản ghi Document trước
+    // Tạo bản ghi Document và gán companyId của admin
     const document = await this.prisma.document.create({
       data: {
         fileName: fileName,
         category: 'veterinary', // Tạm thời để cố định, sau này có thể lấy từ request
+        companyId: admin.companyId,
       },
     });
 

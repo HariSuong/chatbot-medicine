@@ -14,16 +14,19 @@ export class AppointmentRepository {
   /**
    * Tạo một lịch hẹn mới trong database.
    * @param userId ID của người dùng đặt hẹn.
+   * @param companyId ID của công ty.
    * @param data Dữ liệu của lịch hẹn.
    * @returns Lịch hẹn vừa được tạo.
    */
   create(
     userId: string,
+    companyId: string,
     data: CreateAppointmentBodyType,
   ): Promise<AppointmentType> {
     return this.prisma.appointment.create({
       data: {
         userId,
+        companyId,
         consultantId: data.consultantId,
         appointmentDateTime: data.appointmentDateTime,
         notes: data.notes,

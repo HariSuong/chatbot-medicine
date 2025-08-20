@@ -3,6 +3,7 @@ export interface AccessTokenPayloadCreate {
   deviceId: string | null;
   roleId: string;
   roleName: string | null;
+  companyId: string;
 }
 export interface AccessTokenPayload extends AccessTokenPayloadCreate {
   exp: number;

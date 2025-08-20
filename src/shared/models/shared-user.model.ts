@@ -13,7 +13,7 @@ export const UserSchema = z.object({
   status: z.enum(USER_STATUS_VALUES), // status là UserStatus enum, dùng z.enum với const array
 
   roleId: z.string().uuid(), // roleId là String, nên là string và validate dạng UUID
-
+  companyId: z.string().uuid(),
   createdAt: z.date(), // createdAt là DateTime @default(now()), nên là Date
   updatedAt: z.date(), // updatedAt là DateTime @updatedAt, nên là Date
 

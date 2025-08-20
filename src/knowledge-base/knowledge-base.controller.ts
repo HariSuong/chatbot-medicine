@@ -17,6 +17,8 @@ import { ROLE_NAME_VALUES } from 'src/shared/constains/role.constain';
 import { Roles } from 'src/shared/decorators/roles.decorator';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
 import { KnowledgeBaseService } from './knowledge-base.service';
+import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
+import { AccessTokenPayload } from 'src/shared/types/jwt.type';
 
 @Controller('knowledge-base')
 export class KnowledgeBaseController {
@@ -41,6 +43,7 @@ export class KnowledgeBaseController {
       }),
     )
     file: Express.Multer.File,
+    @CurrentUser() admin: AccessTokenPayload,
   ) {
     // Log ra để xem object file chứa những gì
     console.log('--- 1. CONTROLLER: Nhận được 1 file upload ---');
@@ -52,6 +55,7 @@ export class KnowledgeBaseController {
     return this.knowledgeBaseService.processAndEmbedPdf(
       file.buffer,
       file.originalname,
+      admin,
     );
   }
 
@@ -74,6 +78,7 @@ export class KnowledgeBaseController {
       }),
     )
     files: Array<Express.Multer.File>, // Biến nhận được là một MẢNG các file
+    @CurrentUser() admin: AccessTokenPayload,
   ) {
     console.log(
       `--- 1. CONTROLLER: Nhận được ${files.length} file(s) upload ---`,
@@ -85,6 +90,7 @@ export class KnowledgeBaseController {
       await this.knowledgeBaseService.processAndEmbedPdf(
         file.buffer,
         file.originalname,
+        admin,
       );
     }
 

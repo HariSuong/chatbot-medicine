@@ -34,8 +34,8 @@ export class UsersController {
    */
   @Get()
   @ZodSerializerDto(UserWithRoleDTO)
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@CurrentUser() admin: AccessTokenPayload) {
+    return this.usersService.findAll(admin.companyId);
   }
 
   @Patch(':id')

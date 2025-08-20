@@ -11,6 +11,7 @@ export const AppointmentSchema = z.object({
   appointmentDateTime: z.coerce.date(), // Dùng coerce.date() để Zod tự động chuyển đổi chuỗi ISO thành Date object
   status: z.enum(APPOINTMENT_STATUS_VALUES),
   notes: z.string().nullable(),
+  companyId: z.string().uuid(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

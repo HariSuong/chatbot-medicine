@@ -22,8 +22,8 @@ export class ConsultantsService {
   /**
    * Logic để lấy danh sách tất cả các bác sĩ.
    */
-  findAll() {
-    return this.consultantsRepo.findAll();
+  findAll(companyId: string) {
+    return this.consultantsRepo.findAll(companyId);
   }
 
   /**
@@ -47,13 +47,18 @@ export class ConsultantsService {
           phoneNumber: data.phoneNumber,
         },
         doctorRoleId,
+        data.companyId, // <-- Sửa ở đây
       );
 
       // 4. Tạo hồ sơ Consultant liên kết với User vừa tạo
-      return this.consultantsRepo.createConsultantProfile(doctorUser.id, {
-        specialty: data.specialty,
-        bio: data.bio,
-      });
+      return this.consultantsRepo.createConsultantProfile(
+        doctorUser.id,
+        {
+          specialty: data.specialty,
+          bio: data.bio,
+        },
+        data.companyId, // <-- Sửa ở đây
+      );
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
         throw EmailAlreadyExistsException;

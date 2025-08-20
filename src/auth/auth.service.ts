@@ -4,6 +4,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 
 import { addMilliseconds } from 'date-fns';
 import ms from 'ms';
+import { CompaniesRepository } from 'src/admin/companies/companies.repo';
 
 import { RegisterBodyDto } from 'src/auth/auth.dto';
 import {
@@ -46,6 +47,7 @@ export class AuthService {
     private readonly authRepository: AuthRepository, // Thêm AuthRepository vào constructor
     private readonly sharedUserRepository: SharedUserRepository,
     private readonly emailService: EmailService, // <-- Inject EmailService
+    private readonly companiesRepo: CompaniesRepository, // <-- Inject CompaniesRepository
   ) {}
 
   async register(body: RegisterBodyDto) {
@@ -67,16 +69,29 @@ export class AuthService {
         throw OTPExpiredException;
       }
 
+      // 1. Tìm "Công ty Mặc định"
+
+      const defaultCompany =
+        await this.companiesRepo.findByName('Default Company');
+      if (!defaultCompany) {
+        throw new Error(
+          'Default Company not found. Please run the seed script.',
+        );
+      }
+
       // Lấy role ID của vai trò "CLIENT" từ trong cache roleService.getClientRoleId()
       const clientRoleId = await this.roleService.getUserRoleId();
       const hashedPassword = await this.hasingService.hash(body.password);
-      const user = await this.authRepository.createUser({
-        email: body.email,
-        name: body.name,
-        phoneNumber: body.phoneNumber,
-        password: hashedPassword,
-        roleId: clientRoleId, // Sử dụng roleId đã lấy từ roleService
-      });
+      const user = await this.authRepository.createUser(
+        {
+          email: body.email,
+          name: body.name,
+          phoneNumber: body.phoneNumber,
+          password: hashedPassword,
+          roleId: clientRoleId, // Sử dụng roleId đã lấy từ roleService
+        },
+        defaultCompany.id,
+      );
 
       // <-- THÊM BƯỚC NÀY
       await this.authRepository.deleteVerificationCode(verificationCode.id);
@@ -199,6 +214,7 @@ export class AuthService {
       roleId: user.roleId,
       roleName: user.role.name,
       userId: user.id,
+      companyId: user.companyId,
     });
     return token;
   }
@@ -207,9 +223,16 @@ export class AuthService {
     deviceId,
     roleId,
     roleName,
+    companyId,
   }: AccessTokenPayloadCreate) {
     const [accessToken, refreshToken] = await Promise.all([
-      this.tokenService.signAccessToken({ userId, deviceId, roleId, roleName }),
+      this.tokenService.signAccessToken({
+        userId,
+        deviceId,
+        roleId,
+        roleName,
+        companyId,
+      }),
       this.tokenService.signRefreshToken({ userId }),
     ]);
 
@@ -251,6 +274,7 @@ export class AuthService {
         deviceId,
         user: {
           roleId,
+          companyId,
           role: { name: roleName },
         },
       } = refreshTokenInDb;
@@ -274,6 +298,7 @@ export class AuthService {
         deviceId,
         roleId,
         roleName,
+        companyId,
       });
 
       const [, , token] = await Promise.all([

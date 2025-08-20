@@ -8,6 +8,7 @@ import { UserSchema } from 'src/shared/models/shared-user.model';
 export const ConsultantSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
+  companyId: z.string().uuid(),
   specialty: z.string().nullable(),
   bio: z.string().nullable(),
   isAvailable: z.boolean(),
@@ -33,6 +34,7 @@ export const CreateConsultantBodySchema = UserSchema.pick({
     // Thêm các trường riêng cho Consultant
     specialty: z.string().optional(),
     bio: z.string().optional(),
+    companyId: z.string().uuid('ID công ty không hợp lệ.'),
   })
   .strict();
 

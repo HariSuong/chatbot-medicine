@@ -22,11 +22,13 @@ export class ConsultantsRepository {
       'email' | 'password' | 'name' | 'phoneNumber'
     >,
     doctorRoleId: string,
+    companyId: string,
   ): Promise<User> {
     return this.prisma.user.create({
       data: {
         ...data,
         roleId: doctorRoleId,
+        companyId: companyId, // <-- THÊM MỚI: Gán companyId
         status: 'ACTIVE', // Kích hoạt tài khoản bác sĩ ngay lập tức
       },
     });
@@ -38,12 +40,14 @@ export class ConsultantsRepository {
   async createConsultantProfile(
     userId: string,
     data: Pick<CreateConsultantBodyType, 'specialty' | 'bio'>,
+    companyId: string,
   ): Promise<ConsultantResType> {
     const consultant = await this.prisma.consultant.create({
       data: {
         userId,
         specialty: data.specialty,
         bio: data.bio,
+        companyId: companyId, // <-- THÊM MỚI: Gán companyId
       },
       include: {
         user: {
@@ -59,8 +63,11 @@ export class ConsultantsRepository {
   /**
    * Lấy danh sách tất cả các consultant, bao gồm thông tin user và role.
    */
-  async findAll(): Promise<ConsultantResType[]> {
+  async findAll(companyId: string): Promise<ConsultantResType[]> {
     const consultants = await this.prisma.consultant.findMany({
+      where: {
+        companyId, // <-- Thêm điều kiện lọc
+      },
       include: {
         user: {
           include: {
@@ -74,7 +81,7 @@ export class ConsultantsRepository {
         },
       },
     });
-    return consultants as unknown as ConsultantResType[];
+    return consultants;
   }
 
   /**

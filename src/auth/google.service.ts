@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
+import { CompaniesRepository } from 'src/admin/companies/companies.repo';
 import { GoogleAuthStateType } from 'src/auth/auth.model';
 
 import { AuthRepository } from 'src/auth/auth.repo';
@@ -22,6 +23,7 @@ export class GoogleService {
 
     private readonly roleService: RoleService,
     private readonly hasingService: HasingService,
+    private readonly companiesRepo: CompaniesRepository,
   ) {
     this.outh2Client = new google.auth.OAuth2(
       envConfig.GOOGLE_CLIENT_ID,
@@ -94,16 +96,30 @@ export class GoogleService {
       });
       // Nếu không có user tức là người mới, vậy nên sẽ tiến hành đăng ký
       if (!user) {
+        // --- SỬA LẠI Ở ĐÂY ---
+        // 1. Tìm "Công ty Mặc định"
+        const defaultCompany =
+          await this.companiesRepo.findByName('Default Company');
+        if (!defaultCompany) {
+          throw new Error(
+            'Default Company not found. Please run the seed script.',
+          );
+        }
+
+        // 2. Tạo user mới và gán companyId
         const clientRoleId = await this.roleService.getUserRoleId(); // <-- Sửa tên hàm
         const hashedPassword = await this.hasingService.hash(uuidv4());
-        user = await this.authRepository.createUserIncludeRole({
-          email: data.email,
-          name: data.name ?? '',
-          phoneNumber: '',
-          password: hashedPassword,
-          roleId: clientRoleId,
-          avatarUrl: data.picture ?? null, // <-- Sửa 'avatar' thành 'avatarUrl'
-        });
+        user = await this.authRepository.createUserIncludeRole(
+          {
+            email: data.email,
+            name: data.name ?? '',
+            phoneNumber: '',
+            password: hashedPassword,
+            roleId: clientRoleId,
+            avatarUrl: data.picture ?? null, // <-- Sửa 'avatar' thành 'avatarUrl'
+          },
+          defaultCompany.id, // <-- Truyền companyId vào
+        );
       }
 
       const device = await this.authRepository.createDevice({
@@ -117,6 +133,7 @@ export class GoogleService {
         roleId: user.roleId,
         roleName: user.name,
         userId: user.id,
+        companyId: user.companyId,
       });
 
       return authTokens;

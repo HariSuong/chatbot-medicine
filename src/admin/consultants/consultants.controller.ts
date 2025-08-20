@@ -24,6 +24,8 @@ import {
   CreateConsultantDTO,
   UpdateConsultantDTO,
 } from 'src/admin/consultants/consultants.dto';
+import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
+import { AccessTokenPayload } from 'src/shared/types/jwt.type';
 
 @Controller('admin/consultants')
 @UseGuards(RolesGuard)
@@ -37,8 +39,10 @@ export class ConsultantsController {
    */
   @Get()
   @ZodSerializerDto(ConsultantDTO)
-  findAll() {
-    return this.consultantsService.findAll();
+  findAll(
+    @CurrentUser() admin: AccessTokenPayload, // Lấy thông tin admin đang thực hiện
+  ) {
+    return this.consultantsService.findAll(admin.companyId);
   }
 
   /**

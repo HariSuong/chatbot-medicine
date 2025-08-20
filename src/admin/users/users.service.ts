@@ -15,8 +15,8 @@ export class UsersService {
   /**
    * Logic để lấy tất cả người dùng.
    */
-  findAll() {
-    return this.usersRepo.findAll();
+  findAll(companyId: string) {
+    return this.usersRepo.findAll(companyId);
   }
 
   async update(userIdToUpdate: string, data: UpdateUserBodyType) {

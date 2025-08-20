@@ -21,6 +21,7 @@ export class AuthRepository {
    * Status sẽ được đặt mặc định là ACTIVE bởi database.
    *
    * @param user Dữ liệu người dùng cần tạo (email, name, password, phoneNumber, roleId).
+   * @param companyId ID của công ty mà người dùng sẽ thuộc về.
    * @returns Promise<Omit<UserType, 'password'>> - Trả về thông tin người dùng đã tạo, loại bỏ mật khẩu.
    */
   createUser(
@@ -28,11 +29,13 @@ export class AuthRepository {
       UserType, // Sử dụng kiểu UserType từ Zod schema của bạn
       'email' | 'name' | 'password' | 'phoneNumber' | 'roleId'
     >,
+    companyId: string, // <-- THÊM MỚI: Nhận vào companyId
   ): Promise<Omit<UserType, 'password'>> {
     return this.prismaService.user.create({
       data: {
         ...user,
         // Đảm bảo roleId là string (uuid)
+        companyId: companyId, // <-- THÊM MỚI: Gán companyId
         roleId: user.roleId,
       },
       omit: {
@@ -46,6 +49,7 @@ export class AuthRepository {
    * Status sẽ được đặt mặc định là ACTIVE bởi database.
    *
    * @param user Dữ liệu người dùng cần tạo.
+   * @param companyId ID của công ty mà người dùng sẽ thuộc về.
    * @returns Promise<UserType & { role: RoleType }> - Trả về người dùng và thông tin vai trò (kiểu Zod).
    */
   createUserIncludeRole(
@@ -53,10 +57,12 @@ export class AuthRepository {
       UserType, // Sử dụng kiểu UserType từ Zod schema của bạn
       'email' | 'name' | 'password' | 'phoneNumber' | 'avatarUrl' | 'roleId'
     >,
+    companyId: string, // <-- THÊM MỚI: Nhận vào companyId
   ): Promise<UserType & { role: RoleType }> {
     return this.prismaService.user.create({
       data: {
         ...user,
+        companyId: companyId, // <-- THÊM MỚI: Gán companyId
       },
       include: {
         role: true,

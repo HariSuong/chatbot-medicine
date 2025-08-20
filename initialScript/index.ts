@@ -18,7 +18,23 @@ const hasingService = new HasingService();
 const main = async () => {
   console.log('Bắt đầu chạy script khởi tạo dữ liệu...');
 
-  // --- Gợi ý 2: Làm cho Script "thông minh" hơn ---
+  // --- 1. Đảm bảo "Công ty Mặc định" tồn tại ---
+  // Thay thế upsert bằng logic findFirst + create để tránh lỗi
+  console.log('Đang kiểm tra/tạo "Công ty Mặc định"...');
+  let defaultCompany = await prisma.company.findFirst({
+    where: { name: 'Default Company' },
+  });
+
+  if (!defaultCompany) {
+    console.log('"Công ty Mặc định" chưa tồn tại, đang tạo mới...');
+    defaultCompany = await prisma.company.create({
+      data: {
+        name: 'Default Company',
+      },
+    });
+  }
+  console.log('✅ Công ty Mặc định đã sẵn sàng.');
+
   // Dùng `upsert` để tạo role nếu chưa có, hoặc bỏ qua nếu đã có.
   // Điều này an toàn hơn là kiểm tra `count`.
   console.log('Đang đảm bảo các vai trò cơ bản tồn tại...');
@@ -71,6 +87,7 @@ const main = async () => {
         password: hashedPassword,
         roleId: adminRole.id, // Dùng ID của vai trò admin vừa được đảm bảo ở trên
         status: 'ACTIVE',
+        companyId: defaultCompany.id, // <-- THÊM MỚI: Gán admin vào công ty mặc định
       },
     });
     console.log(`✅ Đã tạo người dùng Admin thành công: ${adminUser.email}`);
