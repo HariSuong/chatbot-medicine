@@ -19,10 +19,14 @@ export class AppointmentsRepository {
    * **Chức năng:** Lấy danh sách tất cả các lịch hẹn trong hệ thống.
    * **Mục đích:** Để Admin có một cái nhìn tổng quan về tất cả các lịch hẹn đã, đang và sẽ diễn ra.
    * **Giá trị:** Dữ liệu này là nền tảng cho các trang dashboard, báo cáo và quản lý.
+   * @param companyId :Thêm id công ty để lọc cuộc hẹn theo công ty
    * @returns Promise<AppointmentForAdminResType[]> - Một mảng các lịch hẹn, bao gồm thông tin chi tiết của khách hàng và bác sĩ.
    */
-  async findAll(): Promise<AppointmentForAdminResType[]> {
+  async findAll(companyId: string): Promise<AppointmentForAdminResType[]> {
     const appointments = await this.prisma.appointment.findMany({
+      where: {
+        companyId: companyId, // <-- Thêm điều kiện lọc
+      },
       include: {
         user: true, // Lấy thông tin khách hàng đặt hẹn
         consultant: {
@@ -103,5 +107,14 @@ export class AppointmentsRepository {
       },
     });
     return appointment;
+  }
+
+  /**
+   * Xóa một lịch hẹn khỏi database.
+   */
+  async delete(appointmentId: string): Promise<void> {
+    await this.prisma.appointment.delete({
+      where: { id: appointmentId },
+    });
   }
 }

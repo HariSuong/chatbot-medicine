@@ -7,6 +7,7 @@ import { RolesGuard } from 'src/shared/guards/roles.guard';
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo';
 import { AIService } from 'src/shared/services/ai.service';
 import { EmailService } from 'src/shared/services/email.service';
+import { GoogleCalendarService } from 'src/shared/services/google-calendar.service';
 import { HasingService } from 'src/shared/services/hasing.service';
 import { PrismaService } from 'src/shared/services/prisma.service';
 import { TokenService } from 'src/shared/services/token.service';
@@ -21,6 +22,7 @@ const sharedServices = [
   APIKeyGuard,
   RolesGuard,
   AIService,
+  GoogleCalendarService,
 ];
 
 @Global() // Có thể thêm @Global() cho SharedModule nếu muốn các service trong nó dùng chung

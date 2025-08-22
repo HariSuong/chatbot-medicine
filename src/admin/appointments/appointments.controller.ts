@@ -3,7 +3,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -19,6 +22,8 @@ import {
   AppointmentForAdminDTO,
   UpdateAppointmentDTO,
 } from 'src/admin/appointments/appointments.dto';
+import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
+import { AccessTokenPayload } from 'src/shared/types/jwt.type';
 
 @Controller('admin/appointments')
 @UseGuards(RolesGuard)
@@ -32,8 +37,8 @@ export class AppointmentsController {
    */
   @Get()
   @ZodSerializerDto(AppointmentForAdminDTO)
-  findAll() {
-    return this.appointmentsService.findAll();
+  findAll(@CurrentUser() admin: AccessTokenPayload) {
+    return this.appointmentsService.findAll(admin.companyId);
   }
 
   /**
@@ -43,9 +48,27 @@ export class AppointmentsController {
   @Patch(':id')
   @ZodSerializerDto(AppointmentForAdminDTO)
   update(
+    @CurrentUser() admin: AccessTokenPayload,
     @Param('id', ParseUUIDPipe) appointmentId: string,
     @Body() body: UpdateAppointmentDTO,
   ) {
-    return this.appointmentsService.update(appointmentId, body);
+    return this.appointmentsService.update(
+      admin.companyId,
+      appointmentId,
+      body,
+    );
+  }
+
+  /**
+   * API: DELETE /admin/appointments/:id
+   * Cập nhật thông tin của một lịch hẹn (status, thời gian, bác sĩ).
+   */
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  delete(
+    @CurrentUser() admin: AccessTokenPayload, // <-- Lấy thông tin admin
+    @Param('id', ParseUUIDPipe) appointmentId: string,
+  ) {
+    return this.appointmentsService.delete(admin.companyId, appointmentId); // <-- Truyền companyId
   }
 }
